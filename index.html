@@ -1,0 +1,180 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Variables</title>
+  <style>
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      font-family: system-ui, -apple-system, "Segoe UI", Roboto, sans-serif;
+      background: #f7f8fc;
+      color: #1e293b;
+      min-height: 100vh;
+      display: flex;
+      align-items: center;
+      justify-content: center;
+      padding: 24px 16px;
+    }
+    .page { width: 100%; max-width: 640px; }
+    h1 { text-align: center; font-size: 2rem; margin-bottom: 24px; }
+    .card {
+      background: #fff;
+      border: 1px solid #e5e7eb;
+      border-radius: 12px;
+      padding: 20px;
+      margin-bottom: 18px;
+    }
+    .try { background: #eef2ff; border-color: #c7d2fe; }
+    .inputs { display: flex; flex-wrap: wrap; gap: 16px; }
+    .inputs label { flex: 1; min-width: 160px; font-weight: 600; font-family: Consolas, "Courier New", monospace; }
+    .inputs input {
+      display: block; width: 100%; margin-top: 6px;
+      padding: 10px 12px; font-size: 1.3rem;
+      border: 2px solid #c7d2fe; border-radius: 8px;
+      font-family: Consolas, "Courier New", monospace;
+    }
+    .inputs input:focus { outline: none; border-color: #4f46e5; }
+    .boxes { display: flex; flex-wrap: wrap; gap: 14px; }
+    .box {
+      flex: 1; min-width: 140px; text-align: center;
+      border: 2px solid #4f46e5; border-radius: 10px; padding: 14px 10px;
+    }
+    .name { font-family: Consolas, "Courier New", monospace; color: #4f46e5; font-weight: bold; }
+    .val {
+      display: inline-block; font-size: 1.8rem; font-weight: bold; margin: 6px 0;
+      background: #fde68a; padding: 0 10px; border-radius: 6px; transition: background .4s;
+    }
+    .val.flash { background: #fb923c; }
+    .type { font-size: .85rem; color: #64748b; }
+
+    /* shop */
+    .shop { text-align: center; }
+    .shirts { display: flex; flex-wrap: wrap; justify-content: center; gap: 10px; min-height: 96px; }
+    .shirt { position: relative; width: 80px; animation: pop .3s ease-out; }
+    .shirt svg { width: 80px; height: 80px; display: block; }
+    .tag {
+      position: absolute; top: 4px; right: -4px;
+      background: #fde68a; border: 1px solid #f59e0b; border-radius: 6px;
+      font-size: .75rem; font-weight: bold; padding: 1px 5px;
+      transition: background .4s;
+    }
+    .tag.flash { background: #fb923c; }
+    .more { align-self: center; font-weight: bold; color: #64748b; }
+    .empty { align-self: center; color: #94a3b8; }
+    .bill {
+      margin-top: 14px; font-size: 1.1rem;
+      border-top: 2px dashed #e5e7eb; padding-top: 12px;
+    }
+    .bill .val { font-size: 1.3rem; margin: 0 2px; }
+    @media (max-width: 420px) {
+      .bill { font-size: .95rem; white-space: nowrap; }
+      .bill .val { font-size: 1.1rem; padding: 0 6px; }
+    }
+    @keyframes pop { from { transform: scale(.6); opacity: 0; } to { transform: scale(1); opacity: 1; } }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <h1>Variables</h1>
+
+    <div class="card try">
+      <div class="inputs">
+        <label>int price =
+          <input type="number" id="price" value="50" />
+        </label>
+        <label>int quantity =
+          <input type="number" id="quantity" value="3" />
+        </label>
+      </div>
+    </div>
+
+    <div class="card shop">
+      <div class="shirts" id="shirts"></div>
+      <div class="bill">
+        🛒 <span class="val" data-var="quantity"></span> × <span class="val" data-var="price"></span> DH =
+        <span class="val" data-var="total"></span> DH
+      </div>
+    </div>
+
+    <div class="card">
+      <div class="boxes">
+        <div class="box"><div class="name">price</div><div class="val" data-var="price"></div><div class="type">int</div></div>
+        <div class="box"><div class="name">quantity</div><div class="val" data-var="quantity"></div><div class="type">int</div></div>
+        <div class="box"><div class="name">total</div><div class="val" data-var="total"></div><div class="type">int</div></div>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    const priceIn = document.getElementById("price");
+    const quantityIn = document.getElementById("quantity");
+    const shirtsBox = document.getElementById("shirts");
+    const MAX_SHIRTS = 12;
+    const SHIRT_SVG =
+      '<svg viewBox="0 0 100 100" aria-hidden="true">' +
+      '<path d="M35 12 L20 18 L4 34 L18 48 L26 41 L26 90 L74 90 L74 41 L82 48 L96 34 L80 18 L65 12 Q50 26 35 12 Z" ' +
+      'fill="#4f46e5" stroke="#312e81" stroke-width="3" stroke-linejoin="round"/>' +
+      '<path d="M35 12 Q50 26 65 12" fill="none" stroke="#312e81" stroke-width="3"/>' +
+      '</svg>';
+
+    function drawShirts(quantity, price) {
+      const shown = Math.min(Math.max(quantity, 0), MAX_SHIRTS);
+      const current = shirtsBox.querySelectorAll(".shirt");
+
+      // remove extra shirts
+      for (let i = current.length - 1; i >= shown; i--) current[i].remove();
+      // add missing shirts
+      for (let i = current.length; i < shown; i++) {
+        const s = document.createElement("div");
+        s.className = "shirt";
+        s.innerHTML = SHIRT_SVG + '<span class="tag"></span>';
+        shirtsBox.insertBefore(s, shirtsBox.querySelector(".more, .empty"));
+      }
+      // update price tags
+      shirtsBox.querySelectorAll(".tag").forEach(function (t) {
+        const text = price + " DH";
+        if (t.textContent !== text) {
+          t.textContent = text;
+          t.classList.add("flash");
+          setTimeout(function () { t.classList.remove("flash"); }, 400);
+        }
+      });
+      // "+N more" or empty message
+      shirtsBox.querySelectorAll(".more, .empty").forEach(function (el) { el.remove(); });
+      if (quantity > MAX_SHIRTS) {
+        const more = document.createElement("span");
+        more.className = "more";
+        more.textContent = "+" + (quantity - MAX_SHIRTS) + " more";
+        shirtsBox.appendChild(more);
+      } else if (shown === 0) {
+        const empty = document.createElement("span");
+        empty.className = "empty";
+        empty.textContent = "Cart is empty";
+        shirtsBox.appendChild(empty);
+      }
+    }
+
+    function update() {
+      const price = parseInt(priceIn.value, 10) || 0;
+      const quantity = parseInt(quantityIn.value, 10) || 0;
+      const values = { price: price, quantity: quantity, total: price * quantity };
+
+      document.querySelectorAll("[data-var]").forEach(function (el) {
+        const newValue = String(values[el.dataset.var]);
+        if (el.textContent !== newValue) {
+          el.textContent = newValue;
+          el.classList.add("flash");
+          setTimeout(function () { el.classList.remove("flash"); }, 400);
+        }
+      });
+
+      drawShirts(quantity, price);
+    }
+
+    priceIn.addEventListener("input", update);
+    quantityIn.addEventListener("input", update);
+    update();
+  </script>
+</body>
+</html>
